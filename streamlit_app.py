@@ -1,10 +1,10 @@
 import streamlit as st
-import random  # ランダム番号生成のために追加
+import random
 
 # --- ページ設定 ---
 st.set_page_config(page_title="教科書販売 公式サイト", layout="centered")
 
-# --- 改善されたスタイル設定 ---
+# --- スタイル設定 ---
 st.markdown("""
     <style>
     /* 明確な「ステップ表示」のデザイン */
@@ -73,11 +73,7 @@ elif st.session_state.page == 'good_step2':
     name = st.text_input("お名前", placeholder="例：山田 太郎")
     tel = st.text_input("電話番号（半角数字のみ）", placeholder="例：09012345678")
     
-    category = st.selectbox(
-        "教科書の種類を選択してください", 
-        ["選択してください", "文系一般", "理系専門", "医学系", "語学", "その他"],
-        index=0
-    )
+    # 「教科書の種類」のセレクトボックス項目は削除しました
     
     st.write("---")
     agree = st.checkbox("利用規約に同意する")
@@ -85,22 +81,28 @@ elif st.session_state.page == 'good_step2':
     col1, col2 = st.columns([1, 1])
     with col1:
         if st.button("前の画面に戻る", use_container_width=True):
-            # 戻るときは予約番号のキャッシュをクリア
             st.session_state.rsv_num = None
             st.session_state.page = 'good_step1'
             st.rerun()
             
     with col2:
-        # 必須項目が埋まるまでボタンを無効化（バリデーション）
-        submit_disabled = not (name and tel and category != "選択してください" and agree)
+        # 名前、電話番号、規約同意が揃うまでボタンを無効化
+        submit_disabled = not (name and tel and agree)
         
-        if st.button("予約を確定する", type="primary", use_container_width=True, disabled=submit_disabled):
-            # ボタンが押された瞬間にランダムな6桁の数字を生成（例: RSV-482910）
-            random_digits = random.randint(100000, 999999)
-            st.session_state.rsv_num = f"RSV-{random_digits}"
+        # 予約番号がまだ発行されていない場合のみ「予約を確定する」ボタンを表示
+        if st.session_state.rsv_num is None:
+            if st.button("予約を確定する", type="primary", use_container_width=True, disabled=submit_disabled):
+                random_digits = random.randint(100000, 999999)
+                st.session_state.rsv_num = f"RSV-{random_digits}"
+                st.rerun()
 
-    # 予約番号が生成されていたら（＝送信ボタンが押されたら）表示
+    # 予約番号が生成された後の表示処理
     if st.session_state.rsv_num:
-        st.success("予約が完了しました！スクリーンショット等でお控えください。")
+        st.success("予約が完了しました！予約番号をお控えの上、次のステップへお進みください。")
         st.markdown(f'<div class="rsv-number">予約番号：{st.session_state.rsv_num}</div>', unsafe_allow_html=True)
         st.balloons()
+        
+        st.write("---")
+        # 予約番号の下に新しく「教科書予約に進む」ボタンを追加
+        if st.button("👉 教科書予約に進む", type="primary", use_container_width=True):
+            st.info("次の教科書選択ページ（または外部の購入サイト）へ遷移する処理をここに記述します。")
